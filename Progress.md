@@ -1,3 +1,4 @@
+# 初期構築
 ## dockerでSurrealDBを立てる
 ```bash
 docker run -d \
@@ -18,12 +19,11 @@ cd surrealdb-chat-app
 
 ## 依存関係をインストール
 ```bash
-npm install surrealdb.js date-fns
+npm install date-fns
+npm install --save surrealdb
 ```
 
 ## 構造構築
 ```bash
 mkdir lib components
-```
-
-## tailwind.config.
+``` 

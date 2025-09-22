@@ -1,9 +1,24 @@
-/* app/globals.css - 警告なしシンプル版 */
+/* app/globals.css */
 
-/* Tailwind CSS v4のベースインポート */
+/* Tailwind CSS v4 base import */
 @import "tailwindcss";
 
-/* カスタムスクロールバー */
+/* Hide Next.js development mode indicator */
+div[data-nextjs-toast] {
+  display: none !important;
+}
+
+/* Hide other Turbopack/Next.js development tools */
+div[data-nextjs-portal] {
+  display: none !important;
+}
+
+#__next-build-watcher,
+.__next-build-watcher {
+  display: none !important;
+}
+
+/* custom scroll bar */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -22,18 +37,18 @@
   background: #a8a8a8;
 }
 
-/* メッセージのスムーズなスクロール */
+/* Smooth scrolling of messages */
 .chat-container {
   scroll-behavior: smooth;
 }
 
-/* 入力フィールドのフォーカス時のアニメーション */
+/* Animation when input field is focused */
 input:focus {
   transform: scale(1.01);
   transition: transform 0.2s ease-in-out;
 }
 
-/* メッセージの表示アニメーション */
+/* Message display animation */
 @keyframes messageSlideIn {
   from {
     opacity: 0;
@@ -49,7 +64,7 @@ input:focus {
   animation: messageSlideIn 0.3s ease-out;
 }
 
-/* 接続状態インジケーター */
+/* Connection status indicator */
 .connection-indicator {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
@@ -63,7 +78,7 @@ input:focus {
   }
 }
 
-/* ローディングスピナー */
+/* Loading spinner */
 .loading-spinner {
   border: 3px solid #f3f3f3;
   border-top: 3px solid #3498db;
@@ -78,7 +93,7 @@ input:focus {
   100% { transform: rotate(360deg); }
 }
 
-/* ボタンのホバーエフェクト - Tailwind v4対応 */
+/* Button hover effect - Tailwind v4 compatible */
 .btn-primary {
   background-color: #3b82f6;
   color: white;
@@ -111,11 +126,11 @@ input:focus {
   background-color: #4b5563;
 }
 
-/* レスポンシブなチャット画面 */
+/* Responsive chat layout */
 @media (max-width: 768px) {
   .chat-container {
     height: 100vh;
-    height: 100dvh; /* モバイルブラウザ対応 */
+    height: 100dvh; /* Mobile browser support */
   }
   
   .message-bubble {
@@ -123,7 +138,7 @@ input:focus {
   }
 }
 
-/* ダークモード対応（将来の拡張用） */
+/* Dark mode support (for future expansion) */
 @media (prefers-color-scheme: dark) {
   .dark-mode {
     background-color: #1f2937;
@@ -135,7 +150,7 @@ input:focus {
   }
 }
 
-/* アクセシビリティ：リデュースモーション対応 */
+/* Accessibility: Reduce motion support */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;

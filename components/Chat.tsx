@@ -13,20 +13,20 @@ export default function Chat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const subscriptionRef = useRef<string | null>(null);
 
-  // メッセージリストの最下部へスクロール
+  // Scroll to the bottom of the message list
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // SurrealDB接続の初期化
+  // Initialize SurrealDB connection
   useEffect(() => {
     const initConnection = async () => {
       try {
         setLoading(true);
         await surrealDB.connect();
         setIsConnected(true);
-        
-        // 既存のメッセージを取得
+
+        // Get existing messages
         const existingMessages = await surrealDB.getMessages();
         setMessages(existingMessages);
       } catch (error) {
@@ -47,17 +47,17 @@ export default function Chat() {
     };
   }, []);
 
-  // メッセージが更新されたらスクロール
+  // Scroll when message is updated 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  // チャットへの参加
+  // Join chat
   const joinChat = async () => {
     if (!username.trim() || !isConnected) return;
 
     try {
-      // リアルタイム更新の購読開始
+      // Start real-time update subscription
       const subscription = await surrealDB.subscribeToMessages((message: ChatMessage) => {
         setMessages(prev => [...prev, message]);
       });
@@ -68,7 +68,7 @@ export default function Chat() {
     }
   };
 
-  // メッセージ送信
+  // Send message
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -82,28 +82,28 @@ export default function Chat() {
     }
   };
 
-  // ローディング状態
+  // Loading state
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">SurrealDBに接続中...</p>
+          <p className="mt-4 text-gray-600">Connecting to SurrealDB...</p>
         </div>
       </div>
     );
   }
 
-  // 接続エラー状態
+  // Connection error state
   if (!isConnected) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
         <div className="text-center bg-white p-8 rounded-lg shadow-md">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">接続エラー</h2>
-          <p className="text-gray-600 mb-4">SurrealDBサーバーに接続できません。</p>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Connection Error</h2>
+          <p className="text-gray-600 mb-4">Unable to connect to SurrealDB server.</p>
           <p className="text-sm text-gray-500">
-            Dockerコンテナが起動していることを確認してください：<br/>
+            Make sure the Docker container is running:<br/>
             <code className="bg-gray-100 px-2 py-1 rounded">docker run --rm -p 8000:8000 surrealdb/surrealdb:latest start --user root --pass root</code>
           </p>
         </div>
@@ -111,18 +111,18 @@ export default function Chat() {
     );
   }
 
-  // ユーザー名入力画面
+  // User Name Input Screen
   if (!isJoined) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-500 to-purple-600">
         <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
           <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
-            📱 リアルタイムチャット
+            📱 Real-time chat using SurrealDB
           </h1>
           <form onSubmit={(e) => { e.preventDefault(); joinChat(); }}>
             <div className="mb-4">
               <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-                ユーザー名を入力してください
+                Please enter your user name
               </label>
               <input
                 type="text"
@@ -130,7 +130,7 @@ export default function Chat() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                placeholder="あなたの名前"
+                placeholder="Your Name"
                 required
               />
             </div>
@@ -139,7 +139,7 @@ export default function Chat() {
               disabled={!username.trim()}
               className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
             >
-              チャットに参加
+              Join the Chat
             </button>
           </form>
         </div>
@@ -147,33 +147,33 @@ export default function Chat() {
     );
   }
 
-  // メインチャット画面
+  // Main chat screen
   return (
     <div className="flex flex-col h-screen bg-gray-100">
-      {/* ヘッダー */}
+      {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold text-gray-800">
-            📱 リアルタイムチャット
+            📱 Real-time chat using SurrealDB
           </h1>
           <div className="flex items-center space-x-4">
             <span className="text-sm text-gray-600">
-              ようこそ、<span className="font-medium text-blue-600">{username}</span>さん
+              Welcome, <span className="font-medium text-blue-600">{username}</span>-san
             </span>
             <div className="flex items-center">
               <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-              <span className="text-sm text-gray-600">接続中</span>
+              <span className="text-sm text-gray-600">Connecting...</span>
             </div>
           </div>
         </div>
       </header>
 
-      {/* メッセージリスト */}
+      {/* Message list */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
           <div className="text-center text-gray-500 mt-8">
-            <p>まだメッセージがありません</p>
-            <p className="text-sm mt-2">最初のメッセージを送信してみましょう！</p>
+            <p>No messages yet</p>
+            <p className="text-sm mt-2">Try sending the first message!</p>
           </div>
         ) : (
           messages.map((message, index) => (
@@ -213,14 +213,14 @@ export default function Chat() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* メッセージ入力フォーム */}
+      {/* Message input form */}
       <footer className="bg-white border-t border-gray-200 px-4 py-4">
         <form onSubmit={sendMessage} className="flex space-x-2">
           <input
             type="text"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="メッセージを入力..."
+            placeholder="Type your message..."
             className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
           />
           <button
@@ -228,7 +228,7 @@ export default function Chat() {
             disabled={!newMessage.trim()}
             className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white px-6 py-2 rounded-lg font-medium transition-colors"
           >
-            送信
+            Send
           </button>
         </form>
       </footer>

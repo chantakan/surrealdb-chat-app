@@ -5,7 +5,7 @@ export interface ChatMessage {
   username: string;
   message: string;
   timestamp: Date;
-  [key: string]: any; // SurrealDBの型制約を満たすためのindex signature
+  [key: string]: any; // index signature to satisfy SurrealDB type constraints
 }
 
 class SurrealDBService {
@@ -22,7 +22,7 @@ class SurrealDBService {
       { url: 'http://localhost:8000/rpc', type: 'HTTP' },
       { url: 'ws://127.0.0.1:8000/rpc', type: 'WebSocket' },
       { url: 'http://127.0.0.1:8000/rpc', type: 'HTTP' },
-      // 基本的なWebSocketエンドポイントも試行
+      // Basic WebSocket endpoints also tried
       { url: 'ws://localhost:8000', type: 'WebSocket-Basic' },
       { url: 'http://localhost:8000', type: 'HTTP-Basic' },
     ];
@@ -33,22 +33,22 @@ class SurrealDBService {
       try {
         console.log(`🔄 Trying ${config.type} connection to ${config.url}...`);
         
-        // SurrealDBインスタンスを新しく作成（前の試行の影響を避けるため）
+        // Create a new SurrealDB instance (to avoid influence of previous attempts)
         this.db = new Surreal();
         
-        // 接続を試行
+        // connection attempt
         await this.db.connect(config.url);
         console.log(`✅ ${config.type} connection established to ${config.url}`);
         
-        // 最初に認証を試行（一部のバージョンではこちらが先）
+        // Attempt authentication first (in some versions, this is first)
         console.log('🔐 Signing in...');
         await this.db.signin({
           username: 'root',
           password: 'root'
         });
         console.log('✅ Authentication successful');
-        
-        // データベース選択
+
+        // Select database and namespace
         console.log('🎯 Selecting namespace and database...');
         await this.db.use({
           namespace: 'chat',
@@ -59,19 +59,14 @@ class SurrealDBService {
         this.connected = true;
         console.log(`🎉 SurrealDB connected successfully via ${config.type} to ${config.url}`);
 
-        // 簡単な動作テスト
-        console.log('🧪 Testing basic query...');
-        await this.db.query('INFO DB');
-        console.log('✅ Basic query test passed');
-
-        // チャットメッセージテーブルの初期化
+        // Initialize chat message table
         await this.initializeSchema();
-        return; // 接続成功したら終了
+        return; // Stop if connection is successful
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         console.error(`❌ ${config.type} connection failed to ${config.url}:`, errorMessage);
-        
-        // 詳細なエラー情報をログ出力
+
+        // Log detailed error information
         if (error instanceof Error) {
           console.error('Error name:', error.name);
           console.error('Error stack:', error.stack?.substring(0, 200) + '...');
@@ -79,18 +74,18 @@ class SurrealDBService {
         
         errors.push(`${config.url} (${config.type}): ${errorMessage}`);
         
-        // 接続を閉じる（次の試行のため）
+        // Close connection (for next attempt)
         try {
           await this.db.close();
         } catch (closeError) {
-          // 接続が確立されていない場合のエラーは無視
+          // Ignore errors if connection was not established
         }
         
         continue;
       }
     }
 
-    // すべての接続方法で失敗した場合
+    // All connection attempts failed
     console.error('🚨 All connection attempts failed');
     console.error('Detailed errors:', errors);
     console.error('🔍 Server is running but client connection failed. Possible causes:');
@@ -105,14 +100,27 @@ class SurrealDBService {
   }
 
   private async initializeSchema() {
-    // メッセージテーブルの定義
-    await this.db.query(`
-      DEFINE TABLE messages SCHEMAFULL;
-      DEFINE FIELD username ON messages TYPE string ASSERT $value != NONE;
-      DEFINE FIELD message ON messages TYPE string ASSERT $value != NONE;
-      DEFINE FIELD timestamp ON messages TYPE datetime DEFAULT time::now();
-      DEFINE INDEX messages_timestamp_idx ON messages COLUMNS timestamp;
-    `);
+    try {
+      // A simpler approach: attempt table creation and catch errors
+      await this.db.query(`
+        DEFINE TABLE IF NOT EXISTS messages SCHEMAFULL;
+        DEFINE FIELD IF NOT EXISTS username ON messages TYPE string ASSERT $value != NONE;
+        DEFINE FIELD IF NOT EXISTS message ON messages TYPE string ASSERT $value != NONE;
+        DEFINE FIELD IF NOT EXISTS timestamp ON messages TYPE datetime DEFAULT time::now();
+        DEFINE INDEX IF NOT EXISTS messages_timestamp_idx ON messages COLUMNS timestamp;
+      `);
+      console.log('✅ Messages table schema initialized successfully');
+    } catch (error) {
+      // Ignore "already exists" errors
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('already exists') || errorMessage.includes('Table already exists')) {
+        console.log('✅ Messages table already exists, continuing...');
+        return; // Ignore error and continue
+      }
+      
+      console.warn('Schema initialization warning:', errorMessage);
+      // Log other errors as warnings, but continue with connection
+    }
   }
 
   async sendMessage(username: string, message: string): Promise<ChatMessage[]> {
@@ -155,14 +163,14 @@ class SurrealDBService {
     }
   }
 
-  // リアルタイムメッセージの監視
+  // Real-time message monitoring
   async subscribeToMessages(callback: (message: ChatMessage) => void) {
     if (!this.connected) {
       throw new Error('Database not connected');
     }
 
     try {
-      // SurrealDBのlive queryを使用してリアルタイム更新を監視
+      // Use SurrealDB's live query to monitor real-time updates
       const queryUuid = await this.db.live('messages', (action, result) => {
         if (action === 'CREATE' && result) {
           callback(result as ChatMessage);
@@ -178,7 +186,7 @@ class SurrealDBService {
 
   async unsubscribe(queryUuid: string) {
     try {
-      // UUIDに変換して渡す
+      // Pass as UUID type
       await this.db.kill(queryUuid as any);
     } catch (error) {
       console.error('Failed to unsubscribe:', error instanceof Error ? error.message : String(error));
@@ -198,5 +206,5 @@ class SurrealDBService {
   }
 }
 
-// シングルトンインスタンス
+// singleton instance
 export const surrealDB = new SurrealDBService();

@@ -1,4 +1,4 @@
-// app/page.tsx - Tailwind CSS v4動作確認用
+// app/page.tsx - Tailwind CSS v4 for operation check
 import Chat from '@/components/Chat';
 
 export default function Home() {
@@ -6,6 +6,6 @@ export default function Home() {
 }
 
 export const metadata = {
-  title: 'SurrealDB リアルタイムチャット',
-  description: 'SurrealDBのWebSocket機能を使用したリアルタイムチャットアプリケーション',
+  title: 'SurrealDB Real-time chat',
+  description: 'Real-time chat application using SurrealDB\'s WebSocket feature',
 };
