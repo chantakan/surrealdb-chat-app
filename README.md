@@ -77,7 +77,7 @@ Open your browser and navigate to `http://localhost:3000`
 2. Press Enter or click "Send" to send the message
 3. Watch messages appear in real-time from other users
 
-![Chat Demo](./assets/demo_chat.mp4)
+![Chat Demo](./assets/demo_chat.gif)
 
 ## 🏗 Architecture
 
